@@ -3,217 +3,204 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ultimate Film-Gjetter: Drama & Romanse Spesial</title>
+    <title>Den Ultimate Film-Gjetteren</title>
     <style>
         :root {
-            --primary: #ff4bb4;
-            --secondary: #6a0572;
-            --bg: #0f0c29;
-            --card: #1b1b2f;
-            --text: #ffffff;
+            --primary: #ec4899;
+            --secondary: #8b5cf6;
+            --bg: #0f172a;
+            --card: #1e293b;
+            --text: #f8fafc;
         }
 
         body {
-            font-family: 'Segoe UI', sans-serif;
-            background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e);
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background-color: var(--bg);
             color: var(--text);
             display: flex; justify-content: center; align-items: center;
-            min-height: 100vh; margin: 0; padding: 20px;
+            min-height: 100vh; margin: 0;
         }
 
         #app {
             background: var(--card);
             padding: 2.5rem;
             border-radius: 1.5rem;
-            width: 100%; max-width: 600px;
+            width: 95%; max-width: 550px;
             text-align: center;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-            border: 1px solid rgba(255, 75, 180, 0.2);
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
         }
 
-        .progress-container {
-            height: 10px; background: #2d2d44;
-            border-radius: 5px; margin-bottom: 2rem; overflow: hidden;
+        .progress-bar {
+            height: 8px; background: #334155;
+            border-radius: 4px; margin-bottom: 2rem;
         }
 
         #progress {
-            height: 100%; background: var(--primary);
-            width: 0%; transition: width 0.3s;
+            height: 100%; background: linear-gradient(90deg, var(--primary), var(--secondary));
+            width: 0%; transition: width 0.4s ease;
         }
 
-        h2 { font-size: 1.6rem; min-height: 4rem; margin-bottom: 2rem; }
+        .question-text { font-size: 1.5rem; min-height: 4.5rem; margin-bottom: 2rem; font-weight: 600; }
 
-        .btn-grid {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
-        }
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
         button {
-            padding: 1rem; border: none; border-radius: 10px;
-            font-weight: bold; cursor: pointer; transition: 0.2s;
-            font-size: 1rem;
+            padding: 1rem; border: none; border-radius: 0.75rem;
+            font-weight: bold; cursor: pointer; transition: all 0.2s;
+            font-size: 1rem; color: white; background: #334155;
         }
 
-        .btn-ja { background: #2ecc71; color: white; }
-        .btn-nei { background: #e74c3c; color: white; }
-        .btn-kanskje { background: #f1c40f; color: black; }
-        .btn-vetikke { background: #95a5a6; color: white; }
-        .btn-start { background: var(--primary); color: white; grid-column: span 2; font-size: 1.2rem; }
+        button:hover { transform: translateY(-2px); filter: brightness(1.2); }
+        .btn-ja { background: #10b981; }
+        .btn-nei { background: #ef4444; }
+        .btn-start { background: var(--primary); grid-column: span 2; font-size: 1.2rem; }
 
-        button:hover { opacity: 0.8; transform: scale(1.02); }
-
-        .result-box {
-            animation: fadeIn 1s;
-        }
-
-        .movie-title {
-            display: block; font-size: 2.5rem; color: var(--primary);
-            margin: 1.5rem 0; text-shadow: 0 0 10px rgba(255,75,180,0.5);
-        }
-
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .top-guess { font-size: 0.8rem; color: #94a3b8; margin-top: 1rem; }
     </style>
 </head>
 <body>
 
 <div id="app">
-    <div id="status">Spørsmål 1 / 30</div>
-    <div class="progress-container"><div id="progress"></div></div>
+    <div id="stats">Spørsmål 1 / 30</div>
+    <div class="progress-bar"><div id="progress"></div></div>
     
-    <div id="game-content">
-        <h2 id="question">Tenk på en film (gjerne et drama eller en romanse)...</h2>
+    <div id="game-container">
+        <div class="question-text" id="question">Tenk på en film (Drama, Romanse eller andre storfilmer)...</div>
         <div class="btn-grid" id="controls">
             <button class="btn-start" onclick="startGame()">START SPILLET</button>
         </div>
+        <div class="top-guess" id="hint"></div>
     </div>
 </div>
 
 <script>
     const movies = [
-        // ROMANSE & DRAMA (Utvidet)
-        { name: "Titanic", traits: ["romanse", "drama", "skip", "vann", "trist", "historisk", "90tallet"] },
-        { name: "The Notebook", traits: ["romanse", "drama", "regn", "alderdom", "bok", "tårevåt"] },
-        { name: "Me Before You", traits: ["romanse", "drama", "sykdom", "trist", "rik", "rullestol"] },
+        // DRAMA & ROMANSE
+        { name: "Titanic", traits: ["romanse", "drama", "historisk", "vann", "trist", "gammel", "rik", "skip"] },
+        { name: "The Notebook", traits: ["romanse", "drama", "trist", "bok", "regn", "alderdom"] },
+        { name: "Me Before You", traits: ["romanse", "drama", "trist", "sykdom", "rik", "rullestol"] },
         { name: "Pride and Prejudice", traits: ["romanse", "drama", "historisk", "britisk", "ball", "gamledager"] },
-        { name: "La La Land", traits: ["romanse", "musikk", "dans", "drama", "moderne", "hollywood"] },
-        { name: "A Star Is Born", traits: ["romanse", "musikk", "trist", "drama", "kjendis", "alkohol"] },
-        { name: "The Fault in Our Stars", traits: ["romanse", "drama", "sykdom", "ungdom", "trist", "bok"] },
-        { name: "Call Me By Your Name", traits: ["romanse", "drama", "sommer", "italia", "kunst"] },
-        { name: "Brokeback Mountain", traits: ["romanse", "drama", "fjell", "trist", "historisk"] },
-        { name: "About Time", traits: ["romanse", "tidsreise", "drama", "britisk", "familie"] },
-        { name: "The Great Gatsby", traits: ["drama", "romanse", "fest", "rik", "historisk", "20tallet"] },
-        { name: "Notting Hill", traits: ["romanse", "komedie", "kjendis", "britisk", "90tallet"] },
-        { name: "Pretty Woman", traits: ["romanse", "komedie", "penger", "shopping", "90tallet"] },
-        { name: "Eternal Sunshine of the Spotless Mind", traits: ["romanse", "sci-fi", "drama", "glemsel", "vinter"] },
-        { name: "The Theory of Everything", traits: ["drama", "biografi", "romanse", "vitenskap", "sykdom"] },
-        { name: "Before Sunrise", traits: ["romanse", "drama", "snakking", "reise", "europa"] },
+        { name: "La La Land", traits: ["romanse", "musikk", "drama", "dans", "moderne", "hollywood"] },
+        { name: "A Star Is Born", traits: ["romanse", "drama", "musikk", "trist", "alkohol"] },
+        { name: "The Fault in Our Stars", traits: ["romanse", "drama", "trist", "sykdom", "ungdom"] },
+        { name: "Brokeback Mountain", traits: ["romanse", "drama", "trist", "fjell", "historisk"] },
+        { name: "About Time", traits: ["romanse", "drama", "tidsreise", "britisk", "familie"] },
+        { name: "Notting Hill", traits: ["romanse", "komedie", "britisk", "kjendis", "90tallet"] },
+        { name: "Pretty Woman", traits: ["romanse", "komedie", "rik", "shopping", "90tallet"] },
+        { name: "Eternal Sunshine", traits: ["romanse", "drama", "sci-fi", "glemsel", "vinter"] },
+        { name: "The Great Gatsby", traits: ["drama", "romanse", "fest", "rik", "historisk"] },
+        { name: "Call Me By Your Name", traits: ["romanse", "drama", "italia", "sommer"] },
+        { name: "Atonement", traits: ["drama", "romanse", "krig", "trist", "historisk", "britisk"] },
         { name: "P.S. I Love You", traits: ["romanse", "drama", "trist", "brev", "irland"] },
-        { name: "Ghost", traits: ["romanse", "drama", "overnaturlig", "trist", "leire"] },
-        { name: "Romeo + Juliet", traits: ["romanse", "drama", "shakespeare", "moderne", "trist"] },
-        { name: "Atonement", traits: ["drama", "romanse", "krig", "misforståelse", "trist", "historisk"] },
-
+        { name: "The Vow", traits: ["romanse", "drama", "ulykke", "glemsel"] },
+        { name: "Dear John", traits: ["romanse", "drama", "krig", "brev", "trist"] },
+        { name: "The Lucky One", traits: ["romanse", "drama", "krig", "hund"] },
+        { name: "Before Sunrise", traits: ["romanse", "drama", "reise", "europa", "snakking"] },
+        { name: "Little Women", traits: ["drama", "romanse", "historisk", "søstre", "bok"] },
+        { name: "The Best of Me", traits: ["romanse", "drama", "trist", "ungdom", "hevn"] },
+        { name: "Safe Haven", traits: ["romanse", "drama", "mysterium", "flukt"] },
+        { name: "The Last Song", traits: ["romanse", "drama", "sommer", "strand", "musikk"] },
+        { name: "500 Days of Summer", traits: ["romanse", "drama", "trist", "arkitektur"] },
+        
         // ANDRE STORE FILMER
         { name: "Inception", traits: ["sci-fi", "action", "drøm", "komplisert", "moderne"] },
-        { name: "The Godfather", traits: ["drama", "krim", "mafia", "italiensk", "gamledager"] },
-        { name: "The Dark Knight", traits: ["action", "superhelt", "krim", "mørk", "batman"] },
-        { name: "Harry Potter", traits: ["fantasy", "magi", "skole", "barn", "britisk"] },
-        { name: "The Lion King", traits: ["animasjon", "dyr", "musikk", "trist", "barn"] },
-        { name: "The Shawshank Redemption", traits: ["drama", "fengsel", "vennskap", "historisk"] },
-        { name: "Forrest Gump", traits: ["drama", "historisk", "løping", "krig", "benk"] },
-        { name: "Pulp Fiction", traits: ["krim", "drama", "voldelig", "dialog", "90tallet"] },
-        { name: "Schindler's List", traits: ["drama", "krig", "trist", "historisk", "svart-hvitt"] },
-        { name: "The Matrix", traits: ["sci-fi", "action", "data", "robot", "90tallet"] },
-        { name: "Parasite", traits: ["drama", "thriller", "korea", "penger", "moderne"] },
-        { name: "Gladiator", traits: ["action", "drama", "historisk", "hevn", "roma"] }
+        { name: "The Dark Knight", traits: ["superhelt", "action", "krim", "mørk", "batman"] },
+        { name: "Harry Potter", traits: ["fantasy", "magi", "skole", "britisk", "barn"] },
+        { name: "Interstellar", traits: ["sci-fi", "verdensrommet", "drama", "trist", "tid"] },
+        { name: "The Godfather", traits: ["drama", "krim", "mafia", "gamledager", "italiensk"] },
+        { name: "Gladiator", traits: ["action", "drama", "historisk", "roma", "hevn"] },
+        { name: "Schindler's List", traits: ["drama", "krig", "historisk", "trist", "svart-hvitt"] },
+        { name: "The Matrix", traits: ["sci-fi", "action", "data", "fremtid"] },
+        { name: "The Lion King", traits: ["animasjon", "barn", "musikk", "dyr", "trist"] },
+        { name: "Toy Story", traits: ["animasjon", "barn", "leker", "komedie"] },
+        { name: "Shrek", traits: ["animasjon", "barn", "komedie", "eventyr", "grønn"] }
     ];
 
     const questions = [
-        { id: "romanse", text: "Er kjærlighet og romantikk det viktigste i filmen?" },
+        { id: "romanse", text: "Er kjærlighet og romantikk hovedtemaet i filmen?" },
         { id: "drama", text: "Er det en utpreget dramafilm?" },
-        { id: "trist", text: "Er filmen kjent for å være en 'tårevåt' film?" },
+        { id: "trist", text: "Er filmen kjent for å være en tårevåt tragedie?" },
         { id: "historisk", text: "Foregår handlingen i fortiden (før år 2000)?" },
-        { id: "musikk", text: "Er sang, dans eller musikk veldig sentralt?" },
-        { id: "bok", text: "Er filmen basert på en kjent bok?" },
-        { id: "krig", text: "Er krig et sentralt tema?" },
-        { id: "moderne", text: "Foregår handlingen i moderne tid (etter år 2010)?" },
-        { id: "sykdom", text: "Handler filmen om alvorlig sykdom?" },
-        { id: "rik", text: "Er hovedkarakteren veldig rik?" },
-        { id: "britisk", text: "Er filmen satt i Storbritannia (England etc)?" },
-        { id: "vann", text: "Er havet eller vann viktig for handlingen?" },
-        { id: "90tallet", text: "Kom filmen ut på 1990-tallet?" },
+        { id: "sykdom", text: "Handler filmen om alvorlig sykdom eller død?" },
+        { id: "bok", text: "Er filmen basert på en kjent roman?" },
+        { id: "musikk", text: "Er sang eller musikk en veldig viktig del (f.eks. musikal)?" },
+        { id: "rik", text: "Er hovedkarakteren (eller en av dem) svært velstående?" },
+        { id: "britisk", text: "Er filmen satt i Storbritannia eller har veldig britiske karakterer?" },
+        { id: "krig", text: "Spiller krig en sentral rolle i handlingen?" },
+        { id: "gamledager", text: "Foregår handlingen i 'gamledager' med hest og kjerre eller ballkjoler?" },
+        { id: "moderne", text: "Er filmen satt til moderne tid (etter år 2010)?" },
+        { id: "vann", text: "Er havet, vann eller et skip viktig for filmen?" },
         { id: "animasjon", text: "Er det en animert film?" },
-        { id: "sci-fi", text: "Er det innslag av science fiction eller fremtidsteknologi?" },
-        { id: "krim", text: "Handler det om kriminelle eller politi?" },
-        { id: "overnaturlig", text: "Er det spøkelser, magi eller overnaturlige ting?" },
+        { id: "sci-fi", text: "Er det romskip, roboter eller fremtidsteknologi?" },
+        { id: "90tallet", text: "Er dette en klassiker fra 1990-tallet?" },
+        { id: "sommer", text: "Føles det som en typisk sommer- eller strandfilm?" },
+        { id: "vinter", text: "Er det mye snø eller foregår den i et kaldt klima?" },
+        { id: "superhelt", text: "Inneholder filmen superhelter?" },
+        { id: "krim", text: "Handler det om politi, krim eller mafia?" },
+        { id: "overnaturlig", text: "Er det magi, spøkelser eller overnaturlige krefter?" },
         { id: "barn", text: "Er dette hovedsakelig en film for barn?" },
-        { id: "reise", text: "Er karakterene på en lang reise?" },
-        { id: "familie", text: "Er forholdet til familien viktigere enn kjærligheten?" },
-        { id: "gamledager", text: "Bruker karakterene klær fra 1800-tallet eller tidligere?" },
-        { id: "hevn", text: "Er hovedmotivasjonen til karakteren hevn?" },
-        { id: "sommer", text: "Føles det som en typisk sommerfilm?" },
-        { id: "vinter", text: "Er det mye snø eller vinterstemning?" },
-        { id: "action", text: "Er det mye slåssing, skyting eller eksplosjoner?" },
-        { id: "italiens", text: "Har filmen en tilknytning til Italia?" },
-        { id: "voldelig", text: "Er filmen veldig voldelig eller 'rå'?" },
-        { id: "komedie", text: "Er filmen ment for å være morsom i tillegg til dramaet?" },
-        { id: "biografi", text: "Er filmen basert på en ekte, navngitt person?" },
-        { id: "fengsel", text: "Foregår deler av handlingen i et fengsel?" }
+        { id: "reise", text: "Er karakterene på en fysisk reise gjennom flere steder?" },
+        { id: "familie", text: "Er forholdet til familien viktigere enn romantikk?" },
+        { id: "mørk", text: "Er filmen veldig mørk, dyster eller voldelig?" },
+        { id: "hevn", text: "Er hovedkarakteren drevet av hevn?" },
+        { id: "skole", text: "Foregår mye av handlingen på en skole eller universitet?" },
+        { id: "italia", text: "Har filmen en sterk tilknytning til Italia?" },
+        { id: "glemsel", text: "Handler filmen om å glemme eller miste minner?" },
+        { id: "ulykke", text: "Starter dramaet med en alvorlig ulykke?" }
     ];
 
     let currentQ = 0;
-    let scores = {};
+    let movieScores = {};
 
     function startGame() {
         currentQ = 0;
-        scores = {};
-        movies.forEach(m => scores[m.name] = 0);
+        movieScores = {};
+        movies.forEach(m => movieScores[m.name] = 0);
         showQuestion();
     }
 
     function showQuestion() {
         if (currentQ < questions.length) {
-            document.getElementById("status").innerText = `Spørsmål ${currentQ + 1} / ${questions.length}`;
+            document.getElementById("stats").innerText = `Spørsmål ${currentQ + 1} / ${questions.length}`;
             document.getElementById("question").innerText = questions[currentQ].text;
             document.getElementById("progress").style.width = (currentQ / questions.length * 100) + "%";
             
             document.getElementById("controls").innerHTML = `
-                <button class="btn-ja" onclick="processAnswer(2)">JA</button>
-                <button class="btn-nei" onclick="processAnswer(-2)">NEI</button>
-                <button class="btn-kanskje" onclick="processAnswer(1)">KANSKJE</button>
-                <button class="btn-vetikke" onclick="processAnswer(0)">VET IKKE</button>
+                <button class="btn-ja" onclick="answer(2)">JA</button>
+                <button class="btn-nei" onclick="answer(-2)">NEI</button>
+                <button onclick="answer(1)">KANSKJE</button>
+                <button onclick="answer(0)">VET IKKE</button>
             `;
+            updateHint();
         } else {
             showResult();
         }
     }
 
-    function processAnswer(weight) {
+    function answer(weight) {
         const trait = questions[currentQ].id;
-        
         movies.forEach(m => {
             if (m.traits.includes(trait)) {
-                scores[m.name] += weight;
+                movieScores[m.name] += weight;
             } else if (weight === 2) {
-                // Hvis bruker sier JA, men filmen ikke har trekket, trekk litt fra
-                scores[m.name] -= 1;
+                movieScores[m.name] -= 1; // Straff hvis bruker sier JA men filmen mangler trekket
             }
         });
-
         currentQ++;
         showQuestion();
     }
 
+    function updateHint() {
+        let sorted = Object.keys(movieScores).sort((a, b) => movieScores[b] - movieScores[a]);
+        document.getElementById("hint").innerText = `Nåværende mistanke: ${sorted[0]}`;
+    }
+
     function showResult() {
-        let bestMatch = Object.keys(scores).reduce((a, b) => scores[a] > scores[b] ? a : b);
-        
-        document.getElementById("status").innerText = "Resultat";
+        let winner = Object.keys(movieScores).reduce((a, b) => movieScores[a] > movieScores[b] ? a : b);
         document.getElementById("progress").style.width = "100%";
-        document.getElementById("game-content").innerHTML = `
-            <div class="result-box">
-                <h3>Jeg er ganske sikker på at du tenker på...</h3>
-                <span class="movie-title">${bestMatch}</span>
-                <button class="btn-start" onclick="location.reload()">Spill igjen</button>
-            </div>
-        `;
+        document.getElementById("question").innerHTML = `Jeg gjetter: <br><span style="color:var(--primary); font-size:2.5rem;">${winner}</span>`;
+        document.getElementById("controls").innerHTML = `<button class="btn-start" onclick="startGame()">SPILL IGJEN</button>`;
+        document.getElementById("hint").innerText = "";
     }
 </script>
 
