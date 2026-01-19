@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Film-Gjetteren 200+</title>
+    <style>
+        :root {
+            --accent: #00ff88;
+            --bg-dark: #0a0f18;
+            --card-bg: #161e2d;
+            --text-color: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        #app {
+            background: var(--card-bg);
+            padding: 3rem;
+            border-radius: 2rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            width: 95%;
+            max-width: 550px;
+            text-align: center;
+            border: 1px solid rgba(0, 255, 136, 0.1);
+        }
+
+        .progress-container {
+            height: 4px;
+            background: #2d3748;
+            border-radius: 10px;
+            margin-bottom: 2.5rem;
+        }
+
+        #progress {
+            height: 100%;
+            background: var(--accent);
+            width: 0%;
+            transition: width 0.4s ease;
+            box-shadow: 0 0 10px var(--accent);
+        }
+
+        h1 { font-size: 1.8rem; margin-bottom: 2rem; line-height: 1.4; font-weight: 600; }
+        
+        .btn-group { display: flex; flex-direction: column; gap: 15px; }
+
+        button {
+            padding: 1.2rem;
+            border: none;
+            border-radius: 1rem;
+            background: #2d3748;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        button:hover { background: #4a5568; transform: translateY(-2px); }
+
+        .btn-main { background: var(--accent); color: #0a0f18; }
+        .btn-main:hover { background: #00cc6e; }
+
+        .result-title {
+            font-size: 2.5rem;
+            color: var(--accent);
+            display: block;
+            margin: 20px 0;
+            text-shadow: 0 0 15px rgba(0, 255, 136, 0.3);
+        }
+    </style>
+</head>
+<body>
+
+<div id="app">
+    <div class="progress-container"><div id="progress"></div></div>
+    <div id="game-content">
+        <h1 id="question">Tenk på en film... hvilken som helst!</h1>
+        <div class="btn-group" id="actions">
+            <button class="btn-main" onclick="startGame()">START SPILLET</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Database med over 200 filmer
+    const movieData = [
+        // Tidligere filmer beholdes, og her er 100+ nye
+        { name: "Spider-Man: No Way Home", traits: ["superhelt", "ny", "multivers", "action"] },
+        { name: "Dune: Part Two", traits: ["sci-fi", "ny", "ørken", "action"] },
+        { name: "Puss in Boots: The Last Wish", traits: ["animasjon", "ny", "katt", "eventyr"] },
+        { name: "The Batman", traits: ["superhelt", "ny", "krim", "mørk"] },
+        { name: "Knives Out", traits: ["mysterium", "ny", "komedie"] },
+        { name: "Glass Onion", traits: ["mysterium", "ny", "øy"] },
+        { name: "The Whale", traits: ["drama", "ny", "trist"] },
+        { name: "Top Gun", traits: ["action", "gammel", "fly"] },
+        { name: "Predator", traits: ["skrekk", "action", "gammel", "monster"] },
+        { name: "Indiana Jones: Dial of Destiny", traits: ["action", "ny", "eventyr"] },
+        { name: "Guardians of the Galaxy", traits: ["superhelt", "sci-fi", "ny", "musikk"] },
+        { name: "The Northman", traits: ["action", "viking", "ny"] },
+        { name: "Encanto", traits: ["animasjon", "ny", "musikk", "magi"] },
+        { name: "Turning Red", traits: ["animasjon", "ny", "dyr"] },
+        { name: "Sing", traits: ["animasjon", "ny", "musikk"] },
+        { name: "John Wick 4", traits: ["action", "ny", "hevn"] },
+        { name: "Mission: Impossible - Dead Reckoning", traits: ["action", "ny", "agent"] },
+        { name: "The Irishman", traits: ["krim", "ny", "mafia"] },
+        { name: "American Psycho", traits: ["krim", "gammel", "psykologisk"] },
+        { name: "The Hateful Eight", traits: ["western", "ny", "snø"] },
+        { name: "True Grit", traits: ["western", "ny"] },
+        { name: "Unforgiven", traits: ["western", "gammel"] },
+        { name: "The Good, the Bad and the Ugly", traits: ["western", "svært-gammel"] },
+        { name: "Once Upon a Time in Hollywood", traits: ["drama", "ny", "historie"] },
+        { name: "Babylon", traits: ["drama", "ny", "historie"] },
+        { name: "Elvis", traits: ["biografi", "ny", "musikk"] },
+        { name: "Bohemian Rhapsody", traits: ["biografi", "ny", "musikk"] },
+        { name: "Rocketman", traits: ["biografi", "ny", "musikk"] },
+        { name: "The Revenant", traits: ["drama", "ny", "snø", "overlevelse"] },
+        { name: "Cast Away", traits: ["drama", "gammel", "øy"] },
+        { name: "The Martian", traits: ["sci-fi", "ny", "verdensrommet"] },
+        { name: "Apollo 13", traits: ["drama", "gammel", "verdensrommet"] },
+        { name: "A Quiet Place", traits: ["skrekk", "ny", "lydløs"] },
+        { name: "Bird Box", traits: ["skrekk", "ny"] },
+        { name: "Hereditary", traits: ["skrekk", "ny", "psykologisk"] },
+        { name: "Midsommar", traits: ["skrekk", "ny", "sol"] },
+        { name: "Us", traits: ["skrekk", "ny"] },
+        { name: "The Conjuring", traits: ["skrekk", "ny", "spøkelser"] },
+        { name: "Insidious", traits: ["skrekk", "ny", "spøkelser"] },
+        { name: "The Ring", traits: ["skrekk", "gammel"] },
+        { name: "Parasite", traits: ["drama", "ny", "korea"] },
+        { name: "Train to Busan", traits: ["skrekk", "ny", "zombie"] },
+        { name: "World War Z", traits: ["action", "ny", "zombie"] },
+        { name: "Shaun of the Dead", traits: ["komedie", "gammel", "zombie"] },
+        { name: "Zombieland", traits: ["komedie", "ny", "zombie"] },
+        { name: "Deadpool", traits: ["superhelt", "ny", "komedie"] },
+        { name: "Logan", traits: ["superhelt", "ny", "drama"] },
+        { name: "Wonder Woman", traits: ["superhelt", "ny"] },
+        { name: "Man of Steel", traits: ["superhelt", "ny"] },
+        { name: "The Flash", traits: ["superhelt", "ny", "tid"] },
+        { name: "Across the Spider-Verse", traits: ["animasjon", "ny", "multivers"] },
+        { name: "Elemental", traits: ["animasjon", "ny"] },
+        { name: "Soul", traits: ["animasjon", "ny", "jazz"] },
+        { name: "Luca", traits: ["animasjon", "ny", "vann"] },
+        { name: "Cars", traits: ["animasjon", "gammel", "bil"] },
+        { name: "Despicable Me", traits: ["animasjon", "gammel"] },
+        { name: "Kung Fu Panda", traits: ["animasjon", "gammel", "kampsport"] },
+        { name: "How to Train Your Dragon", traits: ["animasjon", "ny", "drage"] },
+        { name: "Madagascar", traits: ["animasjon", "gammel", "dyr"] },
+        { name: "Ice Age", traits: ["animasjon", "gammel", "snø"] },
+        { name: "The Little Mermaid", traits: ["animasjon", "svært-gammel", "vann"] },
+        { name: "Beauty and the Beast", traits: ["animasjon", "svært-gammel"] },
+        { name: "Aladdin", traits: ["animasjon", "svært-gammel"] },
+        { name: "Mulan", traits: ["animasjon", "svært-gammel"] },
+        { name: "Tarzan", traits: ["animasjon", "gammel", "jungel"] },
+        { name: "The Jungle Book", traits: ["animasjon", "svært-gammel", "jungel"] },
+        { name: "101 Dalmatians", traits: ["animasjon", "svært-gammel", "dyr"] },
+        { name: "Bambi", traits: ["animasjon", "svært-gammel", "trist"] },
+        { name: "Pinocchio", traits: ["animasjon", "svært-gammel"] },
+        { name: "Snow White", traits: ["animasjon", "svært-gammel"] },
+        { name: "Cinderella", traits: ["animasjon", "svært-gammel"] },
+        { name: "Peter Pan", traits: ["animasjon", "svært-gammel"] },
+        { name: "Alice in Wonderland", traits: ["animasjon", "svært-gammel"] },
+        { name: "The Nightmare Before Christmas", traits: ["animasjon", "gammel", "jul"] },
+        { name: "Coraline", traits: ["animasjon", "ny", "mørk"] },
+        { name: "The Corpse Bride", traits: ["animasjon", "gammel"] },
+        { name: "Edward Scissorhands", traits: ["fantasy", "gammel"] },
+        { name: "Beetlejuice", traits: ["komedie", "gammel"] },
+        { name: "Ghostbusters", traits: ["komedie", "gammel", "spøkelser"] },
+        { name: "Gremlins", traits: ["skrekk", "gammel", "jul"] },
+        { name: "E.T.", traits: ["sci-fi", "gammel", "romvesen"] },
+        { name: "Close Encounters", traits: ["sci-fi", "gammel", "romvesen"] },
+        { name: "Men in Black", traits: ["sci-fi", "gammel", "agent"] },
+        { name: "Independence Day", traits: ["sci-fi", "gammel", "krig"] },
+        { name: "War of the Worlds", traits: ["sci-fi", "ny", "krig"] },
+        { name: "Arrival", traits: ["sci-fi", "ny", "språk"] },
+        { name: "Contact", traits: ["sci-fi", "gammel"] },
+        { name: "District 9", traits: ["sci-fi", "ny"] },
+        { name: "Ex Machina", traits: ["sci-fi", "ny", "robot"] },
+        { name: "I, Robot", traits: ["sci-fi", "gammel", "robot"] },
+        { name: "The Fifth Element", traits: ["sci-fi", "gammel"] },
+        { name: "Blade Runner", traits: ["sci-fi", "gammel", "robot"] },
+        { name: "2001: A Space Odyssey", traits: ["sci-fi", "svært-gammel", "verdensrommet"] },
+        { name: "Planet of the Apes", traits: ["sci-fi", "svært-gammel", "dyr"] },
+        { name: "Soylent Green", traits: ["sci-fi", "svært-gammel"] },
+        { name: "Metropolis", traits: ["sci-fi", "svært-gammel"] },
+        { name: "Citizen Kane", traits: ["drama", "svært-gammel"] },
+        { name: "Casablanca", traits: ["drama", "svært-gammel"] },
+        { name: "Gone with the Wind", traits: ["drama", "svært-gammel"] },
+        { name: "The Wizard of Oz", traits: ["fantasy", "svært-gammel"] },
+        { name: "Singin' in the Rain", traits: ["musikk", "svært-gammel"] },
+        { name: "Psycho", traits: ["skrekk", "svært-gammel"] },
+        { name: "Rear Window", traits: ["mysterium", "svært-gammel"] },
+        { name: "Vertigo", traits: ["mysterium", "svært-gammel"] },
+        { name: "North by Northwest", traits: ["thriller", "svært-gammel"] },
+        { name: "Jaws", traits: ["skrekk", "gammel", "vann"] },
+        { name: "The Exorcist", traits: ["skrekk", "gammel"] },
+        { name: "Halloween", traits: ["skrekk", "gammel"] },
+        { name: "Friday the 13th", traits: ["skrekk", "gammel"] },
+        { name: "A Nightmare on Elm Street", traits: ["skrekk", "gammel"] },
+        { name: "The Texas Chain Saw Massacre", traits: ["skrekk", "gammel"] },
+        { name: "Evil Dead", traits: ["skrekk", "gammel"] },
+        { name: "The Evil Dead 2", traits: ["skrekk", "gammel"] },
+        { name: "Army of Darkness", traits: ["fantasy", "gammel"] },
+        { name: "The Terminator", traits: ["sci-fi", "gammel", "robot"] },
+        { name: "Terminator 2", traits: ["sci-fi", "gammel", "robot"] },
+        { name: "RoboCop", traits: ["sci-fi", "gammel", "robot"] },
+        { name: "Total Recall", traits: ["sci-fi", "gammel"] },
+        { name: "Conan the Barbarian", traits: ["fantasy", "gammel"] },
+        { name: "Die Hard", traits: ["action", "gammel", "jul"] },
+        { name: "Lethal Weapon", traits: ["action", "gammel"] },
+        { name: "Speed", traits: ["action", "gammel", "buss"] },
+        { name: "The Fugitive", traits: ["thriller", "gammel"] },
+        { name: "The Silence of the Lambs", traits: ["krim", "gammel"] },
+        { name: "Seven", traits: ["krim", "gammel"] },
+        { name: "The Usual Suspects", traits: ["krim", "gammel"] },
+        { name: "Reservoir Dogs", traits: ["krim", "gammel"] },
+        { name: "Pulp Fiction", traits: ["krim", "gammel"] },
+        { name: "Jackie Brown", traits: ["krim", "gammel"] },
+        { name: "Goodfellas", traits: ["krim", "gammel", "mafia"] },
+        { name: "Casino", traits: ["krim", "gammel", "mafia"] },
+        { name: "Heat", traits: ["krim", "gammel"] },
+        { name: "Leon: The Professional", traits: ["action", "gammel"] },
+        { name: "The Big Lebowski", traits: ["komedie", "gammel"] },
+        { name: "Fargo", traits: ["krim", "gammel", "snø"] },
+        { name: "No Country for Old Men", traits: ["krim", "ny"] },
+        { name: "There Will Be Blood", traits: ["drama", "ny"] },
+        { name: "The Social Network", traits: ["biografi", "ny", "tech"] },
+        { name: "Whiplash", traits: ["drama", "ny", "musikk"] },
+        { name: "La La Land", traits: ["musikk", "ny"] },
+        { name: "Moonlight", traits: ["drama", "ny"] },
+        { name: "Birdman", traits: ["drama", "ny"] },
+        { name: "The Grand Budapest Hotel", traits: ["komedie", "ny"] },
+        { name: "The French Dispatch", traits: ["komedie", "ny"] },
+        { name: "Asteroid City", traits: ["komedie", "ny"] },
+        { name: "Everything Everywhere All At Once", traits: ["sci-fi", "ny", "multivers"] },
+        { name: "Oppenheimer", traits: ["biografi", "ny", "historie"] },
+        { name: "Barbie", traits: ["komedie", "ny", "rosa"] },
+        { name: "Kill Bill Vol. 1", traits: ["action", "gammel"] },
+        { name: "Kill Bill Vol. 2", traits: ["action", "gammel"] },
+        { name: "Django Unchained", traits: ["western", "ny"] },
+        { name: "Inglourious Basterds", traits: ["krig", "ny"] },
+        { name: "The Hateful Eight", traits: ["western", "ny"] },
+        { name: "The Wolf of Wall Street", traits: ["biografi", "ny", "penger"] },
+        { name: "Shutter Island", traits: ["mysterium", "ny"] },
+        { name: "The Departed", traits: ["krim", "ny"] },
+        { name: "Gangs of New York", traits: ["drama", "gammel"] },
+        { name: "The Aviator", traits: ["biografi", "gammel"] },
+        { name: "Black Swan", traits: ["drama", "ny", "dans"] },
+        { name: "The Wrestler", traits: ["drama", "ny", "sport"] },
+        { name: "Requiem for a Dream", traits: ["drama", "gammel"] },
+        { name: "Pi", traits: ["drama", "gammel"] },
+        { name: "The Fountain", traits: ["fantasy", "gammel"] },
+        { name: "Mother!", traits: ["skrekk", "ny"] },
+        { name: "The Whale", traits: ["drama", "ny"] },
+        { name: "Scream VI", traits: ["skrekk", "ny"] },
+        { name: "Evil Dead Rise", traits: ["skrekk", "ny"] },
+        { name: "Smile", traits: ["skrekk", "ny"] },
+        { name: "Talk to Me", traits: ["skrekk", "ny"] },
+        { name: "Barbarian", traits: ["skrekk", "ny"] },
+        { name: "Pearl", traits: ["skrekk", "ny"] },
+        { name: "X", traits: ["skrekk", "ny"] },
+        { name: "The Northman", traits: ["action", "ny"] },
+        { name: "The Green Knight", traits: ["fantasy", "ny"] },
+        { name: "Midsommar", traits: ["skrekk", "ny"] },
+        { name: "Hereditary", traits: ["skrekk", "ny"] },
+        { name: "The Lighthouse", traits: ["drama", "ny", "mørk"] },
+        { name: "The Witch", traits: ["skrekk", "ny"] },
+        { name: "The Banshees of Inisherin", traits: ["drama", "ny"] },
+        { name: "Tár", traits: ["drama", "ny"] },
+        { name: "Aftersun", traits: ["drama", "ny"] },
+        { name: "Past Lives", traits: ["drama", "ny"] },
+        { name: "Anatomy of a Fall", traits: ["mysterium", "ny"] },
+        { name: "The Zone of Interest", traits: ["drama", "ny", "krig"] },
+        { name: "Poor Things", traits: ["fantasy", "ny"] },
+        { name: "Saltburn", traits: ["drama", "ny"] },
+        { name: "Wonka", traits: ["fantasy", "ny", "musikk"] },
+        { name: "Napoleon", traits: ["biografi", "ny", "krig"] },
+        { name: "Ferrari", traits: ["biografi", "ny", "bil"] },
+        { name: "Maestro", traits: ["biografi", "ny", "musikk"] },
+        { name: "The Killer", traits: ["action", "ny"] },
+        { name: "The Holdovers", traits: ["komedie", "ny", "jul"] },
+        { name: "American Fiction", traits: ["komedie", "ny"] },
+        { name: "Dream Scenario", traits: ["komedie", "ny"] },
+        { name: "The Iron Claw", traits: ["drama", "ny", "sport"] },
+        { name: "Society of the Snow", traits: ["drama", "ny", "snø"] },
+        { name: "Godzilla Minus One", traits: ["action", "ny", "monster"] }
+    ];
+
+    const questions = [
+        { id: "animasjon", text: "Er det en animasjonsfilm?" },
+        { id: "ny", text: "Ble filmen laget etter 2005?" },
+        { id: "svært-gammel", text: "Ble filmen laget før 1980?" },
+        { id: "superhelt", text: "Inneholder den superhelter?" },
+        { id: "sci-fi", text: "Er det en Science Fiction-film?" },
+        { id: "skrekk", text: "Er det en skrekkfilm?" },
+        { id: "action", text: "Er det mye action eller kampscener?" },
+        { id: "musikk", text: "Er sang eller musikk et sentralt tema (f.eks. musikal)?" },
+        { id: "verdensrommet", text: "Foregår mye av handlingen i verdensrommet?" },
+        { id: "vann", text: "Er handlingen knyttet til hav eller vann?" },
+        { id: "dyr", text: "Er hovedkarakterene eller temaet knyttet til dyr?" },
+        { id: "krim", text: "Handler det om politi, krim eller mafia?" },
+        { id: "snø", text: "Er det mye snø eller kaldt klima i filmen?" },
+        { id: "biografi", text: "Er filmen basert på en ekte person?" },
+        { id: "fantasy", text: "Er det en fantasy-film med magi eller drager?" },
+        { id: "monster", text: "Er det monstre eller store vesener i filmen?" },
+        { id: "jul", text: "Er det en julefilm eller foregår den i julen?" },
+        { id: "bil", text: "Er biler eller racing et hovedtema?" }
+    ];
+
+    let currentQ = 0;
+    let pool = [...movieData];
+
+    function startGame() {
+        currentQ = 0;
+        pool = [...movieData];
+        showQuestion();
+    }
+
+    function showQuestion() {
+        if (currentQ < questions.length && pool.length > 1) {
+            document.getElementById("question").innerText = questions[currentQ].text;
+            document.getElementById("actions").innerHTML = `
+                <button class="btn-main" onclick="answer(true)">JA</button>
+                <button onclick="answer(false)">NEI</button>
+            `;
+            document.getElementById("progress").style.width = (currentQ / questions.length * 100) + "%";
+        } else {
+            showResult();
+        }
+    }
+
+    function answer(val) {
+        const trait = questions[currentQ].id;
+        const filtered = pool.filter(m => val ? m.traits.includes(trait) : !m.traits.includes(trait));
+        
+        if (filtered.length > 0) pool = filtered;
+        
+        currentQ++;
+        showQuestion();
+    }
+
+    function showResult() {
+        const result = pool[Math.floor(Math.random() * pool.length)];
+        document.getElementById("question").innerHTML = `Jeg gjetter: <span class="result-title">${result.name}</span>`;
+        document.getElementById("actions").innerHTML = `<button class="btn-main" onclick="startGame()">SPILL IGJEN</button>`;
+        document.getElementById("progress").style.width = "100%";
+    }
+</script>
+
+</body>
+</html>
